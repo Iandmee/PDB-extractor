@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 namespace PdbExtractor
 {
-
     internal class PdbParser : PdbExtractor.BytesWrapper
     {
         enum StreamName : int
@@ -65,6 +64,7 @@ namespace PdbExtractor
                 throw new ArgumentException("Wrong Pdb file format!");
             }
         }
+
         private void getStreamDirectoryPointers()
         {
             blockSize = parseShort(BLOCK_SIZE_OFFSET);
@@ -78,7 +78,6 @@ namespace PdbExtractor
                 pointersOfStreamDirectory[i] = parseInt(pointerToStreamDirectory + i * QWORD) * blockSize;
             }
         }
-
 
         private void parseStreamDirectory()
         {
@@ -172,7 +171,6 @@ namespace PdbExtractor
             currentOffset += (QWORD - (currentOffset) % QWORD) % QWORD;
             return new DbiModInfoRecord(modInfoFields, moduleName, objFileName);
         }
-
 
         // In case that parts are not sequential I created temperary copy of related bytes for a convinience
         private byte[] getStreamParts(StreamName streamName)

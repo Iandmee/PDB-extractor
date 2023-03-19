@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace PDB_extractor
 {
-
     class DbiModInfoRecord
     {
         ModInfoFields fields;

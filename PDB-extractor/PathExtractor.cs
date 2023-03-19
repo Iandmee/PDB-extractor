@@ -25,7 +25,6 @@ namespace PdbExtractor
         string pathToPDB;
         string guid;
 
-
         public PathExtractor(byte[] bytes) : base(bytes)
         {
             try
@@ -84,12 +83,12 @@ namespace PdbExtractor
         private void extractInfo()
         {
             var signature = System.Text.Encoding.Default.GetString(copySubArray(rawDataPointerToCodeView, QWORD));
-            if(signature != RSDS_SIGNATURE)
+            if (signature != RSDS_SIGNATURE)
             {
                 throw new ArgumentException("Signature != RSDS");
             }
             guid = parseGUID(rawDataPointerToCodeView + GUID_OFFSET);
-            byte[] path = copySubArray(rawDataPointerToCodeView + PDB_PATH_OFFSET,sizeOfCodeViewData - PDB_PATH_OFFSET);
+            byte[] path = copySubArray(rawDataPointerToCodeView + PDB_PATH_OFFSET, sizeOfCodeViewData - PDB_PATH_OFFSET);
             Array.Resize(ref path, Array.FindLastIndex(path, c => c != 0) + 1);
             pathToPDB = System.Text.Encoding.Default.GetString(path);
         }

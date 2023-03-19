@@ -26,7 +26,6 @@ OPTIONS:
             Console.WriteLine(Help);
         }
 
-
         private static List<string> parseFilePaths(string[] args, int printAll)
         {
             List<string> files = new List<string>();
