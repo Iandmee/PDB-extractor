@@ -40,23 +40,23 @@
         private void calculatePointerToCodeview()
         {
             var ntHeader = parseInt(NT_HEADER_OFFSET_POINTER);
+            // get required values by knowing ntHeader address
             var numberOfSections = parseShort(ntHeader + NUMBER_OF_SECTIONS_OFFSET);
+            var optionalHeaderPointer = ntHeader + OPTIONAL_HEADER_OFFSET;
+            var sizeOfOptionalHeader = parseShort(ntHeader + SIZE_OF_OPTIONAL_HEADER_OFFSET);
             var fileCharacteristic = ntHeader + FILE_CHARACTERISTIC_OFFSET;
-
-            if ((parseShort(fileCharacteristic) & IMAGE_FILE_DEBUG_STRIPPED_FLAG) != 0) // Check existence of the Debug directory
+            // check existence of the Debug directory
+            if ((parseShort(fileCharacteristic) & IMAGE_FILE_DEBUG_STRIPPED_FLAG) != 0)
 
             {
                 throw new ArgumentException("No debug file found!");
             }
-
-            var optionalHeaderPointer = ntHeader + OPTIONAL_HEADER_OFFSET;
-            var sizeOfOptionalHeader = parseShort(ntHeader + SIZE_OF_OPTIONAL_HEADER_OFFSET);
-
+            // calculate debug directory RVA by knowing optionalHeader parameters
             var debugDirectoryRvaPointer = optionalHeaderPointer + sizeOfOptionalHeader - SIZE_OF_DATADIRS_AFTER_DEBUG;
             var debugDirectoryRva = parseInt(debugDirectoryRvaPointer);
-
+            // get a pointer to the first section header after optional header for the next iterating through the sections headers
             var firstSectionHeaderPointer = optionalHeaderPointer + sizeOfOptionalHeader;
-
+            // find a section, where Debug directory is located by iterating through the sections and calculating RVA boundaries
             var debugDirectoryPointer = findCorrectSectionForDebugDirectory(firstSectionHeaderPointer, numberOfSections, debugDirectoryRva);
             sizeOfCodeViewData = parseInt(debugDirectoryPointer + SIZE_OF_CODEVIEW_DATA_OFFSET);
             rawDataPointerToCodeView = parseInt(debugDirectoryPointer + RAW_DATA_POINTER_TO_CODEVIEW_OFFSET);

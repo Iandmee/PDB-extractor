@@ -13,7 +13,7 @@ namespace PdbExtractor
             rawBytes = bytes;
         }
 
-        /* For the convinience I write this similar functions separately * */
+        /* For the convinience I wrote this similar functions separately * */
         protected int parseInt(int pos)
         {
             return parseInt(rawBytes, pos);
