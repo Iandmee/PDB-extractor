@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 
 namespace PDB_extractor
 {
     class DbiModInfoRecord
     {
         ModInfoFields fields;
-        string moduleName;
-        string objFileName;
+        readonly string moduleName;
+        readonly string objFileName;
         public DbiModInfoRecord(ModInfoFields fields, string moduleName, string objFileName)
         {
             this.fields = fields;
@@ -20,7 +15,7 @@ namespace PDB_extractor
         }
         public override string ToString()
         {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new();
             builder.AppendLine(fields.ToString());
             builder.AppendLine(String.Format("  ModuleName: {0}", moduleName));
             builder.AppendLine(String.Format("  ObjFileName: {0}", objFileName));

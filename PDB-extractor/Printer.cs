@@ -1,11 +1,4 @@
-﻿using PdbExtractor;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PdbExtractor
+﻿namespace PdbExtractor
 {
     internal class Printer
     {
@@ -28,7 +21,7 @@ OPTIONS:
 
         private static List<string> parseFilePaths(string[] args, int printAll)
         {
-            List<string> files = new List<string>();
+            List<string> files = new();
             var rootPath = Path.GetPathRoot(Directory.GetCurrentDirectory());
 
             for (int i = printAll; i < args.Length; i++)

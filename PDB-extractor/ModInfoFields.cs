@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using System.Text;
 namespace PDB_extractor
 {
     struct ModInfoFields
@@ -31,7 +26,7 @@ namespace PDB_extractor
 
         override public string ToString()
         {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new();
             builder.AppendLine(String.Format("  Section: 0x{0}", Convert.ToString(Section, 16)));
             builder.AppendLine(String.Format("  Offset: 0x{0}", Convert.ToString(Offset, 16)));
             builder.AppendLine(String.Format("  Size: 0x{0}", Convert.ToString(Size, 16)));

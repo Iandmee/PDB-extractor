@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 
 namespace PdbExtractor
 {
@@ -23,9 +19,9 @@ namespace PdbExtractor
     // this is a class, because I have to modify guid from raw bytes, and I can not just map it. 
     class Authentity
     {
-        string StreamVersion;
-        string Guid;
-        int Age;
+        readonly string StreamVersion;
+        readonly string Guid;
+        readonly int Age;
 
         public Authentity(string version, string guid, int age)
         {
@@ -36,7 +32,7 @@ namespace PdbExtractor
 
         public override string ToString()
         {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new();
             builder.AppendLine(String.Format("StreamVersion: {0}", StreamVersion));
             builder.AppendLine();
             builder.AppendLine("Authentity");

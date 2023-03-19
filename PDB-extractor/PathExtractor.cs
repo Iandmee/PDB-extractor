@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace PdbExtractor
+﻿namespace PdbExtractor
 {
     class PathExtractor : PdbExtractor.BytesWrapper
     {

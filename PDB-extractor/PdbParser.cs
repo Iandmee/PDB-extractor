@@ -1,11 +1,6 @@
 ﻿using PDB_extractor;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace PdbExtractor
 {
@@ -21,21 +16,19 @@ namespace PdbExtractor
         }
 
         const int BLOCK_SIZE_OFFSET = 0x20;
-        const int NUMBER_OF_PAGES_OFFSET = 0x28;
         const int SIZE_OF_STREAM_DIRECTORY_OFFSET = 0x2c;
         const int POINTER_TO_STREAM_DIRECTORY_OFFSET = 0x34;
         const string ACCEPTED_SIGNATURE = "Microsoft C/C++ MSF 7.00";
+        readonly List<Stream> streams;
+        readonly List<DbiModInfoRecord> dbiModInfoRecords;
+        Authentity authentity;
+        DbiStreamHeader dbiHeader;
         int blockSize;
-        int numberOfPages;
         int sizeOfStreamDirectory;
         int pointerToStreamDirectory;
         int numberOfStreamDirectoryParts;
         int[] pointersOfStreamDirectory;
         int currentOffset;
-        List<Stream> streams;
-        Authentity authentity;
-        List<DbiModInfoRecord> dbiModInfoRecords;
-        DbiStreamHeader dbiHeader;
 
         public PdbParser(byte[] bytes) : base(bytes)
         {
@@ -68,7 +61,6 @@ namespace PdbExtractor
         private void getStreamDirectoryPointers()
         {
             blockSize = parseShort(BLOCK_SIZE_OFFSET);
-            numberOfPages = parseInt(NUMBER_OF_PAGES_OFFSET);
             sizeOfStreamDirectory = parseInt(SIZE_OF_STREAM_DIRECTORY_OFFSET);
             pointerToStreamDirectory = blockSize * parseInt(POINTER_TO_STREAM_DIRECTORY_OFFSET);
             numberOfStreamDirectoryParts = sizeOfStreamDirectory % blockSize == 0 ? sizeOfStreamDirectory / blockSize : sizeOfStreamDirectory / blockSize + 1;
@@ -111,7 +103,7 @@ namespace PdbExtractor
             currentOffset += 2 * QWORD;
             var age = parseInt(bytes, currentOffset);
             currentOffset += QWORD;
-            StringBuilder guid = new StringBuilder();
+            StringBuilder guid = new();
             guid.Append(reversedHexSubArray(bytes, currentOffset, QWORD)).Append("-");
             currentOffset += QWORD;
             guid.Append(reversedHexSubArray(bytes, currentOffset, DWORD)).Append("-");
@@ -155,7 +147,7 @@ namespace PdbExtractor
 
         private DbiModInfoRecord parseDbiModInfoRecord(byte[] dbiBytes)
         {
-            ModInfoFields modInfoFields = new ModInfoFields();
+            ModInfoFields modInfoFields = new();
             var size = Marshal.SizeOf(modInfoFields);
             IntPtr pnt = Marshal.AllocHGlobal(size);
             Marshal.Copy(dbiBytes, currentOffset, pnt, size);
@@ -175,7 +167,7 @@ namespace PdbExtractor
         // In case that parts are not sequential I created temperary copy of related bytes for a convinience
         private byte[] getStreamParts(StreamName streamName)
         {
-            List<byte> bytes = new List<byte>();
+            List<byte> bytes = new();
             var pointers = streamName != StreamName.StreamDirectory ? streams[(int)streamName].pointers : pointersOfStreamDirectory;
             var size = streamName != StreamName.StreamDirectory ? streams[(int)streamName].size : sizeOfStreamDirectory;
             for (int i = 0; i < pointers.Length - 1; i++)
