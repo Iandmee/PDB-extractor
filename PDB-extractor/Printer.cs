@@ -9,12 +9,12 @@
 Prints GUID and path of the related PDB file
 Usage:
 
-PDB-extractor.exe [OPTIONS] [TARGETS]
+PDB-extractor.exe [OPTIONS] TARGETS
 
-OPTIONS:
+[OPTIONS]:
     -a  Print all possible information, including PDB file parsed info. 
 
-[TARGETS] - full paths to the PE files/group of files
+TARGETS - full paths to the PE files/group of files
 ";
             Console.WriteLine(Help);
         }
