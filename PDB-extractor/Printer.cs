@@ -14,7 +14,7 @@ PDB-extractor.exe [OPTIONS] TARGETS
 [OPTIONS]:
     -a  Print all possible information, including PDB file parsed info. 
 
-TARGETS - full paths to the PE files/group of files
+TARGETS - paths to the PE files
 ";
             Console.WriteLine(Help);
         }
