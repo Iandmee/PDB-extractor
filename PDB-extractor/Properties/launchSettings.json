@@ -1,8 +1,7 @@
 {
   "profiles": {
     "PDB-extractor": {
-      "commandName": "Project",
-      "commandLineArgs": "C:\\Users\\milae\\temp\\System.Linq.dll"
+      "commandName": "Project"
     }
   }
 }

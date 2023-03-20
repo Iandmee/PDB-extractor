@@ -29,34 +29,9 @@ TARGETS - full paths to the PE files/group of files
                 var arg = args[i];
                 try
                 {
-                    var searchPattern = arg;
-                    var searchPath = rootPath;
-                    var fileRootPath = rootPath;
-                    var indexOfFirstAsterisk = arg.IndexOf('*');
-                    if (indexOfFirstAsterisk == -1)
-                    {
-                        fileRootPath = Path.GetPathRoot(arg);
-                    }
-                    else
-                    {
-                        fileRootPath = Path.GetPathRoot(arg.Substring(0, indexOfFirstAsterisk));
-                    }
-
-                    if (fileRootPath == rootPath)
-                    {
-                        searchPattern = arg.Substring(searchPath.Length);
-                    }
-                    else if (fileRootPath == string.Empty || fileRootPath == null)
-                    {
-                        searchPath = Directory.GetCurrentDirectory();
-                    }
-                    else
-                    {
-                        searchPath = fileRootPath;
-                        searchPattern = arg.Substring(searchPath.Length);
-                    }
-
-                    files.AddRange(Directory.GetFiles(searchPath, searchPattern, SearchOption.AllDirectories));
+                    var searchPath = Path.GetDirectoryName(Path.GetFullPath(arg));
+                    var searchPattern = Path.GetFileName(arg);
+                    files.AddRange(Directory.GetFiles(searchPath, searchPattern, SearchOption.TopDirectoryOnly));
                 }
                 catch
                 {
