@@ -3,10 +3,9 @@ Console application on C#, which receives the list of PE files in the command li
 # Usage
 
 ```
-PDB-extractor [OPTIONS] [TARGETS]
+PDB-extractor.exe [OPTIONS] TARGETS
 
-OPTIONS:
+[OPTIONS]:
     -a  Print all possible information, including PDB file parsed info. 
-
-[TARGETS] - paths to the PE files/group of files
+TARGETS - paths to the PE files
 ```
