@@ -22,8 +22,6 @@ TARGETS - paths to the PE files
         private static List<string> parseFilePaths(string[] args, int printAll)
         {
             List<string> files = new();
-            var rootPath = Path.GetPathRoot(Directory.GetCurrentDirectory());
-
             for (int i = printAll; i < args.Length; i++)
             {
                 var arg = args[i];
