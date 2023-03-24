@@ -47,7 +47,6 @@
             var fileCharacteristic = ntHeader + FILE_CHARACTERISTIC_OFFSET;
             // check existence of the Debug directory
             if ((parseShort(fileCharacteristic) & IMAGE_FILE_DEBUG_STRIPPED_FLAG) != 0)
-
             {
                 throw new ArgumentException("No debug file found!");
             }
