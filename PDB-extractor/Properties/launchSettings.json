@@ -1,7 +1,8 @@
 {
   "profiles": {
     "PDB-extractor": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "-a D:\\Trash_Downloads\\SharpUp\\SharpUp\\bin\\Debug\\SharpUp.exe"
     }
   }
 }

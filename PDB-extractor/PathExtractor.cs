@@ -80,7 +80,7 @@
 
         private void extractInfo()
         {
-            var signature = System.Text.Encoding.Default.GetString(copySubArray(rawDataPointerToCodeView, QWORD));
+            var signature = System.Text.Encoding.Default.GetString(copySubArray(rawDataPointerToCodeView, DWORD));
             if (signature != RSDS_SIGNATURE)
             {
                 throw new ArgumentException("Signature != RSDS");

@@ -67,7 +67,7 @@ namespace PdbExtractor
             pointersOfStreamDirectory = new int[numberOfStreamDirectoryParts];
             for (int i = 0; i < numberOfStreamDirectoryParts; i++)
             {
-                pointersOfStreamDirectory[i] = parseInt(pointerToStreamDirectory + i * QWORD) * blockSize;
+                pointersOfStreamDirectory[i] = parseInt(pointerToStreamDirectory + i * DWORD) * blockSize;
             }
         }
 
@@ -75,12 +75,12 @@ namespace PdbExtractor
         {
             var bytes = getStreamParts(StreamName.StreamDirectory);
             var numberOfStreams = parseInt(bytes, currentOffset);
-            currentOffset += QWORD;
+            currentOffset += DWORD;
             for (int i = 0; i < numberOfStreams; i++)
             {
                 var streamSize = parseInt(bytes, currentOffset);
                 streams.Add(new Stream(streamSize, blockSize));
-                currentOffset += QWORD;
+                currentOffset += DWORD;
             }
             for (int i = 0; i < streams.Count; i++)
             {
@@ -91,7 +91,7 @@ namespace PdbExtractor
                 for (int pointer = 0; pointer < streams[i].pointers.Length; pointer++)
                 {
                     streams[i].pointers[pointer] = parseInt(bytes, currentOffset) * blockSize;
-                    currentOffset += QWORD;
+                    currentOffset += DWORD;
                 }
             }
             currentOffset = 0;
@@ -100,18 +100,18 @@ namespace PdbExtractor
         private void parseAuthority(byte[] bytes)
         {
             var version = (PdbStreamVersion)parseInt(bytes, currentOffset);
-            currentOffset += 2 * QWORD;
+            currentOffset += 2 * DWORD;
             var age = parseInt(bytes, currentOffset);
-            currentOffset += QWORD;
+            currentOffset += DWORD;
             StringBuilder guid = new();
-            guid.Append(reversedHexSubArray(bytes, currentOffset, QWORD)).Append("-");
-            currentOffset += QWORD;
             guid.Append(reversedHexSubArray(bytes, currentOffset, DWORD)).Append("-");
             currentOffset += DWORD;
-            guid.Append(reversedHexSubArray(bytes, currentOffset, DWORD)).Append("-");
-            currentOffset += DWORD;
-            guid.Append(hexSubArray(bytes, currentOffset, QWORD * 2));
-            currentOffset += QWORD * 2;
+            guid.Append(reversedHexSubArray(bytes, currentOffset, WORD)).Append("-");
+            currentOffset += WORD;
+            guid.Append(reversedHexSubArray(bytes, currentOffset, WORD)).Append("-");
+            currentOffset += WORD;
+            guid.Append(hexSubArray(bytes, currentOffset, DWORD * 2));
+            currentOffset += DWORD * 2;
             authentity = new Authentity(version.ToString(), guid.ToString(), age);
         }
 
@@ -160,7 +160,7 @@ namespace PdbExtractor
             string objFileName = System.Text.Encoding.Default.GetString(copySubArray(dbiBytes, currentOffset, objFileNameSize));
             currentOffset += objFileNameSize + 1;
             // add padding
-            currentOffset += (QWORD - (currentOffset) % QWORD) % QWORD;
+            currentOffset += (DWORD - (currentOffset) % DWORD) % DWORD;
             return new DbiModInfoRecord(modInfoFields, moduleName, objFileName);
         }
 
