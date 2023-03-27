@@ -10,6 +10,6 @@ internal class Program
 
     private static void Main(string[] args)
     {
-        Printer.printPdbInfo(args);
+        Printer.printInfo(args);
     }
 }

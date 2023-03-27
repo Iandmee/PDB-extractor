@@ -1,5 +1,4 @@
-﻿using PDB_extractor;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
 
 namespace PdbExtractor
@@ -30,7 +29,7 @@ namespace PdbExtractor
         int[] pointersOfStreamDirectory;
         int currentOffset;
 
-        public PdbParser(byte[] bytes) : base(bytes)
+        public PdbParser(FileStream fileStream) : base(fileStream)
         {
             try
             {
@@ -51,7 +50,7 @@ namespace PdbExtractor
 
         private void checkPdbFormat()
         {
-            var signature = System.Text.Encoding.Default.GetString(copySubArray(0, 24));
+            var signature = new String(copySubArray(0, 24).Select(b => (char)b).ToArray());
             if (signature != ACCEPTED_SIGNATURE)
             {
                 throw new ArgumentException("Wrong Pdb file format!");
@@ -82,15 +81,15 @@ namespace PdbExtractor
                 streams.Add(new Stream(streamSize, blockSize));
                 currentOffset += DWORD;
             }
-            for (int i = 0; i < streams.Count; i++)
+            foreach (var stream in streams)
             {
-                if (streams[i].size == 0)
+                if (stream.size == 0)
                 {
                     continue;
                 }
-                for (int pointer = 0; pointer < streams[i].pointers.Length; pointer++)
+                for (int pointer = 0; pointer < stream.pointers.Length; pointer++)
                 {
-                    streams[i].pointers[pointer] = parseInt(bytes, currentOffset) * blockSize;
+                    stream.pointers[pointer] = parseInt(bytes, currentOffset) * blockSize;
                     currentOffset += DWORD;
                 }
             }
@@ -103,16 +102,7 @@ namespace PdbExtractor
             currentOffset += 2 * DWORD;
             var age = parseInt(bytes, currentOffset);
             currentOffset += DWORD;
-            StringBuilder guid = new();
-            guid.Append(reversedHexSubArray(bytes, currentOffset, DWORD)).Append("-");
-            currentOffset += DWORD;
-            guid.Append(reversedHexSubArray(bytes, currentOffset, WORD)).Append("-");
-            currentOffset += WORD;
-            guid.Append(reversedHexSubArray(bytes, currentOffset, WORD)).Append("-");
-            currentOffset += WORD;
-            guid.Append(hexSubArray(bytes, currentOffset, DWORD * 2));
-            currentOffset += DWORD * 2;
-            authentity = new Authentity(version.ToString(), guid.ToString(), age);
+            authentity = new Authentity(version.ToString(), parseGUID(bytes, currentOffset), age);
         }
 
         private void parsePdbStream()
@@ -154,10 +144,10 @@ namespace PdbExtractor
             modInfoFields = (ModInfoFields)Marshal.PtrToStructure(pnt, typeof(ModInfoFields));
             currentOffset += size;
             var moduleNameSize = findFirstZero(dbiBytes, currentOffset) - currentOffset;
-            string moduleName = System.Text.Encoding.Default.GetString(copySubArray(dbiBytes, currentOffset, moduleNameSize));
+            var moduleName = new String(copySubArray(dbiBytes, currentOffset, moduleNameSize).Select(b => (char)b).ToArray());
             currentOffset += moduleNameSize + 1;
             var objFileNameSize = findFirstZero(dbiBytes, currentOffset) - currentOffset;
-            string objFileName = System.Text.Encoding.Default.GetString(copySubArray(dbiBytes, currentOffset, objFileNameSize));
+            var objFileName = new String(copySubArray(dbiBytes, currentOffset, objFileNameSize).Select(b => (char)b).ToArray());
             currentOffset += objFileNameSize + 1;
             // add padding
             currentOffset += (DWORD - (currentOffset) % DWORD) % DWORD;

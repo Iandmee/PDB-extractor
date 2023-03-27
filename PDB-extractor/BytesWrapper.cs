@@ -6,16 +6,19 @@ namespace PdbExtractor
     {
         protected const int WORD = 2;
         protected const int DWORD = 4;
-        private byte[] rawBytes;
-        protected BytesWrapper(byte[] bytes)
+        FileStream fileStream;
+        BinaryReader binaryReader;
+        protected BytesWrapper(FileStream fileStream)
         {
-            rawBytes = bytes;
+            this.fileStream = fileStream;
+            this.binaryReader = new BinaryReader(fileStream);
         }
 
         /* For the convinience I wrote this similar functions separately * */
         protected int parseInt(int pos)
         {
-            return parseInt(rawBytes, pos);
+            fileStream.Seek(pos, SeekOrigin.Begin);
+            return binaryReader.ReadInt32();
         }
 
         protected int parseInt(byte[] bytes, int pos)
@@ -25,7 +28,8 @@ namespace PdbExtractor
 
         protected short parseShort(int pos)
         {
-            return parseShort(rawBytes, pos);
+            fileStream.Seek(pos, SeekOrigin.Begin);
+            return binaryReader.ReadInt16();
         }
 
         protected short parseShort(byte[] bytes, int pos)
@@ -35,7 +39,8 @@ namespace PdbExtractor
 
         protected uint parseUInt(int pos)
         {
-            return parseUInt(rawBytes, pos);
+            fileStream.Seek(pos, SeekOrigin.Begin);
+            return binaryReader.ReadUInt32();
         }
 
         protected uint parseUInt(byte[] bytes, int pos)
@@ -45,7 +50,8 @@ namespace PdbExtractor
 
         protected ushort parseUShort(int pos)
         {
-            return parseUShort(rawBytes, pos);
+            fileStream.Seek(pos, SeekOrigin.Begin);
+            return binaryReader.ReadUInt16();
         }
 
         protected ushort parseUShort(byte[] bytes, int pos)
@@ -55,7 +61,8 @@ namespace PdbExtractor
 
         protected byte[] copySubArray(int pos, int length)
         {
-            return copySubArray(rawBytes, pos, length);
+            fileStream.Seek(pos, SeekOrigin.Begin);
+            return binaryReader.ReadBytes(length);
         }
 
         protected byte[] copySubArray(byte[] bytes, int pos, int length)
@@ -67,7 +74,8 @@ namespace PdbExtractor
 
         protected string hexSubArray(int pos, int length)
         {
-            return hexSubArray(rawBytes, pos, length);
+            fileStream.Seek(pos, SeekOrigin.Begin);
+            return String.Join("", binaryReader.ReadBytes(length).Select(c => Convert.ToString(c, 16)));
         }
 
         protected string hexSubArray(byte[] bytes, int pos, int length)
@@ -75,32 +83,16 @@ namespace PdbExtractor
             return String.Join("", copySubArray(bytes, pos, length).Select(c => Convert.ToString(c, 16)));
         }
 
-        protected string reversedHexSubArray(int pos, int length)
-        {
-            return reversedHexSubArray(rawBytes, pos, length);
-        }
-
-        protected string reversedHexSubArray(byte[] bytes, int pos, int length)
-        {
-            return String.Join("", copySubArray(bytes, pos, length).Select(c => Convert.ToString(c, 16)).Reverse());
-        }
-
         protected string parseGUID(int pos)
         {
-            return parseGUID(rawBytes, pos);
+            fileStream.Seek(pos, SeekOrigin.Begin);
+            Guid guid = new Guid(binaryReader.ReadBytes(DWORD * 4));
+            return guid.ToString();
         }
 
         protected string parseGUID(byte[] bytes, int pos)
         {
-            StringBuilder guid = new StringBuilder();
-            var offset = 0;
-            guid.Append(reversedHexSubArray(bytes, offset + pos, DWORD)).Append("-");
-            offset += DWORD;
-            guid.Append(reversedHexSubArray(bytes, offset + pos, WORD)).Append("-");
-            offset += WORD;
-            guid.Append(reversedHexSubArray(bytes, offset + pos, WORD)).Append("-");
-            offset += WORD;
-            guid.Append(hexSubArray(bytes, offset + pos, DWORD * 2));
+            Guid guid = new Guid(copySubArray(bytes, pos, DWORD * 4));
             return guid.ToString();
         }
 

@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace PDB_extractor
+namespace PdbExtractor
 {
     class DbiModInfoRecord
     {

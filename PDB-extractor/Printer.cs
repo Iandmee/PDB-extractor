@@ -19,9 +19,8 @@ TARGETS - paths to the PE files
             Console.WriteLine(Help);
         }
 
-        private static List<string> parseFilePaths(string[] args, int printAll)
+        private static void parseFilePaths(string[] args, List<string> files, int printAll)
         {
-            List<string> files = new();
             for (int i = printAll; i < args.Length; i++)
             {
                 var arg = args[i];
@@ -37,10 +36,30 @@ TARGETS - paths to the PE files
                     Console.WriteLine();
                 }
             }
-            return files;
         }
 
-        public static void printPdbInfo(string[] args)
+        private static void printDirectoryInfo(DebugDirectory dir, int printAll)
+        {
+            try
+            {
+                Console.WriteLine(dir.ToString());
+                if (printAll == 1)
+                {
+                    var fileStreamOfPdb = new FileStream(dir.getPath(), FileMode.Open, FileAccess.Read);
+                    var pdbParser = new PdbParser(fileStreamOfPdb);
+                    Console.WriteLine("Pdb file information:");
+                    pdbParser.printInfo();
+                    Console.WriteLine();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine(e.Message);
+                Console.WriteLine();
+            }
+        }
+
+        public static void printInfo(string[] args)
         {
             int printAll = 0;
             if (args.Length == 0)
@@ -52,27 +71,19 @@ TARGETS - paths to the PE files
             {
                 printAll++;
             }
-            List<string> files = parseFilePaths(args, printAll);
-            for (int i = 0; i < files.Count; i++)
+            List<String> files = new List<string>();
+            parseFilePaths(args, files, printAll);
+            foreach (var file in files)
             {
-                Console.WriteLine(String.Format("PE File: {0}", files[i]));
+                Console.WriteLine(String.Format("PE File: {0}", file));
                 try
                 {
-                    var bytesOfExecutable = File.ReadAllBytes(files[i]);
-                    var extractor = new PdbExtractor.PathExtractor(bytesOfExecutable);
-                    var path = extractor.getPath();
-                    var guid = extractor.getGuid();
-                    Console.WriteLine(String.Format("Pdb file path: {0}", path));
-                    Console.WriteLine(String.Format("GUID in PE: {0}", guid));
+                    var fileStreamOfExecutable = new FileStream(file, FileMode.Open, FileAccess.Read);
+                    var extractor = new PdbExtractor.PathExtractor(fileStreamOfExecutable);
+                    var directories = extractor.getDirectories();
+                    Console.WriteLine("#Pdb(s)#");
                     Console.WriteLine();
-                    if (printAll == 1)
-                    {
-                        var bytesOfPdb = File.ReadAllBytes(path);
-                        var pdbParser = new PdbParser(bytesOfPdb);
-                        Console.WriteLine("Pdb file information:");
-                        pdbParser.printInfo();
-                        Console.WriteLine();
-                    }
+                    Array.ForEach(directories, dir => printDirectoryInfo(dir, printAll));
                 }
                 catch (Exception e)
                 {

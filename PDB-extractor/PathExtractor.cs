@@ -1,4 +1,5 @@
-﻿namespace PdbExtractor
+﻿
+namespace PdbExtractor
 {
     class PathExtractor : PdbExtractor.BytesWrapper
     {
@@ -17,13 +18,14 @@
         const int SIZE_OF_DATADIRS_AFTER_DEBUG = 0x8 * 10;
         const int SECTION_SIZE = 0x28;
         const int GUID_OFFSET = 0x4;
+        const int SIZE_OF_DEBUG_DIRECTORY = 0x1C;
+        const int SIZE_OF_DEBUG_DIRECTORIES_OFFSET = 0x4;
         const string RSDS_SIGNATURE = "RSDS";
-        int sizeOfCodeViewData;
-        int rawDataPointerToCodeView;
-        string pathToPDB;
-        string guid;
+        int sizeOfDebugDirectories;
+        int firstDebugDirectoryPointer;
+        DebugDirectory[] directories;
 
-        public PathExtractor(byte[] bytes) : base(bytes)
+        public PathExtractor(FileStream fileStream) : base(fileStream)
         {
             try
             {
@@ -37,9 +39,24 @@
             }
         }
 
+        private void checkPESignatures(int ntHeader)
+        {
+            String mzSignature = new String(copySubArray(0, WORD).Select(b => (char)b).ToArray());
+            if (mzSignature != "MZ")
+            {
+                throw new ArgumentException("No MZ signature found! (probably it is not a PE file)");
+            }
+            String peSignature = new String(copySubArray(ntHeader, DWORD).Select(b => (char)b).ToArray());
+            if (peSignature != "PE\0\0")
+            {
+                throw new ArgumentException("No PE signature found! (probably it is not a PE file)");
+            }
+        }
+
         private void calculatePointerToCodeview()
         {
             var ntHeader = parseInt(NT_HEADER_OFFSET_POINTER);
+            checkPESignatures(ntHeader);
             // get required values by knowing ntHeader address
             var numberOfSections = parseShort(ntHeader + NUMBER_OF_SECTIONS_OFFSET);
             var optionalHeaderPointer = ntHeader + OPTIONAL_HEADER_OFFSET;
@@ -51,14 +68,13 @@
                 throw new ArgumentException("No debug file found!");
             }
             // calculate debug directory RVA by knowing optionalHeader parameters
-            var debugDirectoryRvaPointer = optionalHeaderPointer + sizeOfOptionalHeader - SIZE_OF_DATADIRS_AFTER_DEBUG;
-            var debugDirectoryRva = parseInt(debugDirectoryRvaPointer);
+            var firstDebugDirectoryRvaPointer = optionalHeaderPointer + sizeOfOptionalHeader - SIZE_OF_DATADIRS_AFTER_DEBUG;
+            var firstDebugDirectoryRva = parseInt(firstDebugDirectoryRvaPointer);
             // get a pointer to the first section header after optional header for the next iterating through the sections headers
             var firstSectionHeaderPointer = optionalHeaderPointer + sizeOfOptionalHeader;
             // find a section, where Debug directory is located by iterating through the sections and calculating RVA boundaries
-            var debugDirectoryPointer = findCorrectSectionForDebugDirectory(firstSectionHeaderPointer, numberOfSections, debugDirectoryRva);
-            sizeOfCodeViewData = parseInt(debugDirectoryPointer + SIZE_OF_CODEVIEW_DATA_OFFSET);
-            rawDataPointerToCodeView = parseInt(debugDirectoryPointer + RAW_DATA_POINTER_TO_CODEVIEW_OFFSET);
+            firstDebugDirectoryPointer = findCorrectSectionForDebugDirectory(firstSectionHeaderPointer, numberOfSections, firstDebugDirectoryRva);
+            sizeOfDebugDirectories = parseInt(firstDebugDirectoryRvaPointer + SIZE_OF_DEBUG_DIRECTORIES_OFFSET);
         }
 
         private int findCorrectSectionForDebugDirectory(int startPos, int numberOfSections, int debugDirectoryRva)
@@ -67,9 +83,9 @@
             {
                 var pointerToSection = startPos + SECTION_SIZE * i;
                 var virtualAddressOfSection = parseInt(pointerToSection + RVA_VALUE_OF_SECTION_HEADER_OFFSET);
-                var sizeOfRawDataOfSection = parseInt(pointerToSection + SIZE_OF_RAW_DATA_OF_SECTION);
+                var sizeOfDataOfSection = parseInt(pointerToSection + SIZE_OF_RAW_DATA_OF_SECTION);
                 var pointerToRawDataOfSection = parseInt(pointerToSection + POINTER_TO_RAW_DATA_SECTION_HEADER_OFFSET);
-                if (debugDirectoryRva >= virtualAddressOfSection && debugDirectoryRva <= virtualAddressOfSection + sizeOfRawDataOfSection)
+                if (debugDirectoryRva >= virtualAddressOfSection && debugDirectoryRva < virtualAddressOfSection + sizeOfDataOfSection)
                 {
                     return debugDirectoryRva - virtualAddressOfSection + pointerToRawDataOfSection;
                 }
@@ -79,25 +95,41 @@
 
         private void extractInfo()
         {
-            var signature = System.Text.Encoding.Default.GetString(copySubArray(rawDataPointerToCodeView, DWORD));
-            if (signature != RSDS_SIGNATURE)
+            if (sizeOfDebugDirectories == 0)
             {
-                throw new ArgumentException("Signature != RSDS");
+                throw new ArgumentException("Debug directory(s) size 0!");
             }
-            guid = parseGUID(rawDataPointerToCodeView + GUID_OFFSET);
-            byte[] path = copySubArray(rawDataPointerToCodeView + PDB_PATH_OFFSET, sizeOfCodeViewData - PDB_PATH_OFFSET);
-            Array.Resize(ref path, Array.FindLastIndex(path, c => c != 0) + 1);
-            pathToPDB = System.Text.Encoding.Default.GetString(path);
+            if (sizeOfDebugDirectories % SIZE_OF_DEBUG_DIRECTORY != 0)
+            {
+                throw new ArgumentException("Wrong debug directory(s) size!");
+            }
+            int debugDirectoryPointer;
+            int sizeOfCodeViewData;
+            int rawDataPointerToCodeView;
+            string signature;
+            int numberOfDirectories = sizeOfDebugDirectories / SIZE_OF_DEBUG_DIRECTORY;
+            directories = new DebugDirectory[numberOfDirectories];
+            for (int i = 0; i < numberOfDirectories; i++)
+            {
+                debugDirectoryPointer = firstDebugDirectoryPointer + i * SIZE_OF_DEBUG_DIRECTORY;
+                sizeOfCodeViewData = parseInt(debugDirectoryPointer + SIZE_OF_CODEVIEW_DATA_OFFSET);
+                rawDataPointerToCodeView = parseInt(debugDirectoryPointer + RAW_DATA_POINTER_TO_CODEVIEW_OFFSET);
+                signature = new String(copySubArray(rawDataPointerToCodeView, DWORD).Select(b => (char)b).ToArray());
+                if (signature != RSDS_SIGNATURE)
+                {
+                    throw new ArgumentException("Signature != RSDS");
+                }
+                byte[] pathBytes = copySubArray(rawDataPointerToCodeView + PDB_PATH_OFFSET, sizeOfCodeViewData - PDB_PATH_OFFSET);
+                Array.Resize(ref pathBytes, Array.FindLastIndex(pathBytes, c => c != 0) + 1);
+                string pathString = new String(pathBytes.Select(b => (char)b).ToArray());
+                string guid = parseGUID(rawDataPointerToCodeView + GUID_OFFSET);
+                directories[i] = new DebugDirectory(pathString, guid);
+            }
         }
 
-        public string getPath()
+        public DebugDirectory[] getDirectories()
         {
-            return pathToPDB;
-        }
-
-        public string getGuid()
-        {
-            return guid;
+            return directories;
         }
 
     }
