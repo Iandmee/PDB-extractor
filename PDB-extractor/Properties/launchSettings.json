@@ -2,7 +2,7 @@
   "profiles": {
     "PDB-extractor": {
       "commandName": "Project",
-      "commandLineArgs": "-a D:\\Trash_Downloads\\SharpUp\\SharpUp\\bin\\Debug\\SharpUp.exe"
+      "commandLineArgs": "-a   D:\\Trash_Downloads\\Microsoft.Xna.Framework.ni.dll"
     }
   }
 }

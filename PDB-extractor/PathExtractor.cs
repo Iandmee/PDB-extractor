@@ -18,8 +18,10 @@ namespace PdbExtractor
         const int SIZE_OF_DATADIRS_AFTER_DEBUG = 0x8 * 10;
         const int SECTION_SIZE = 0x28;
         const int GUID_OFFSET = 0x4;
-        const int SIZE_OF_DEBUG_DIRECTORY = 0x1C;
         const int SIZE_OF_DEBUG_DIRECTORIES_OFFSET = 0x4;
+        const int SIZE_OF_DEBUG_DIRECTORY = 0x1C;
+        const int DEBUG_DIRECTORY_TYPE_OFFSET = 0xC;
+        const int CODEVIEW_DIRECTORY_TYPE = 0x2;
         const string RSDS_SIGNATURE = "RSDS";
         int sizeOfDebugDirectories;
         int firstDebugDirectoryPointer;
@@ -107,11 +109,17 @@ namespace PdbExtractor
             int sizeOfCodeViewData;
             int rawDataPointerToCodeView;
             string signature;
+            int directoryType;
             int numberOfDirectories = sizeOfDebugDirectories / SIZE_OF_DEBUG_DIRECTORY;
-            directories = new DebugDirectory[numberOfDirectories];
+            List<DebugDirectory> directoriesList = new List<DebugDirectory>();
             for (int i = 0; i < numberOfDirectories; i++)
             {
                 debugDirectoryPointer = firstDebugDirectoryPointer + i * SIZE_OF_DEBUG_DIRECTORY;
+                directoryType = parseInt(debugDirectoryPointer + DEBUG_DIRECTORY_TYPE_OFFSET);
+                if (directoryType != CODEVIEW_DIRECTORY_TYPE)
+                {
+                    continue;
+                }
                 sizeOfCodeViewData = parseInt(debugDirectoryPointer + SIZE_OF_CODEVIEW_DATA_OFFSET);
                 rawDataPointerToCodeView = parseInt(debugDirectoryPointer + RAW_DATA_POINTER_TO_CODEVIEW_OFFSET);
                 signature = new String(copySubArray(rawDataPointerToCodeView, DWORD).Select(b => (char)b).ToArray());
@@ -123,8 +131,9 @@ namespace PdbExtractor
                 Array.Resize(ref pathBytes, Array.FindLastIndex(pathBytes, c => c != 0) + 1);
                 string pathString = new String(pathBytes.Select(b => (char)b).ToArray());
                 string guid = parseGUID(rawDataPointerToCodeView + GUID_OFFSET);
-                directories[i] = new DebugDirectory(pathString, guid);
+                directoriesList.Add(new DebugDirectory(pathString, guid));
             }
+            directories = directoriesList.ToArray();
         }
 
         public DebugDirectory[] getDirectories()
