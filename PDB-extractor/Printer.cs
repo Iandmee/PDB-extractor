@@ -79,7 +79,7 @@ TARGETS - paths to the PE files
                 try
                 {
                     var fileStreamOfExecutable = new FileStream(file, FileMode.Open, FileAccess.Read);
-                    var extractor = new PdbExtractor.PathExtractor(fileStreamOfExecutable);
+                    var extractor = new PathExtractor(fileStreamOfExecutable);
                     var directories = extractor.getDirectories();
                     Console.WriteLine("#Pdb(s)#");
                     Console.WriteLine();

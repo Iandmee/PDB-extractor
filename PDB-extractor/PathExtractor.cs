@@ -125,7 +125,7 @@ namespace PdbExtractor
                 signature = new String(copySubArray(rawDataPointerToCodeView, DWORD).Select(b => (char)b).ToArray());
                 if (signature != RSDS_SIGNATURE)
                 {
-                    throw new ArgumentException("Signature != RSDS");
+                    throw new ArgumentException("Signature != RSDS in some CodeView directory");
                 }
                 byte[] pathBytes = copySubArray(rawDataPointerToCodeView + PDB_PATH_OFFSET, sizeOfCodeViewData - PDB_PATH_OFFSET);
                 Array.Resize(ref pathBytes, Array.FindLastIndex(pathBytes, c => c != 0) + 1);
