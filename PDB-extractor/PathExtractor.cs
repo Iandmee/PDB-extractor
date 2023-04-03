@@ -23,6 +23,8 @@ namespace PdbExtractor
         const int DEBUG_DIRECTORY_TYPE_OFFSET = 0xC;
         const int CODEVIEW_DIRECTORY_TYPE = 0x2;
         const string RSDS_SIGNATURE = "RSDS";
+        const string MZ_SIGNATURE = "MZ";
+        const string PE_SIGNATURE = "PE\0\0";
         int sizeOfDebugDirectories;
         int firstDebugDirectoryPointer;
         DebugDirectory[] directories;
@@ -44,12 +46,12 @@ namespace PdbExtractor
         private void checkPESignatures(int ntHeader)
         {
             String mzSignature = new String(copySubArray(0, WORD).Select(b => (char)b).ToArray());
-            if (mzSignature != "MZ")
+            if (mzSignature != MZ_SIGNATURE)
             {
                 throw new ArgumentException("No MZ signature found! (probably it is not a PE file)");
             }
             String peSignature = new String(copySubArray(ntHeader, DWORD).Select(b => (char)b).ToArray());
-            if (peSignature != "PE\0\0")
+            if (peSignature != PE_SIGNATURE)
             {
                 throw new ArgumentException("No PE signature found! (probably it is not a PE file)");
             }
